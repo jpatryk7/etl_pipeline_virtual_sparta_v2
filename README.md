@@ -8,7 +8,8 @@ There is also some code for analytics, as well as a visualised dashboard.
 2. Clone repository `$ git clone https://github.com/AChaudarySG/ETLPipelineForSG.git`
 3. Cd into the project directory `$ cd ETLPipelineForSG`
 4. Create a new virtual environment `$ python -m venv my_venv`
-5. Configure interpreter settings to add `my_venv` to the project and restart IDE
-6. Run `$ docker-compose up -d --build` to spin up the MySQL container
-7. Go into the `app` directory (`$ cd app`). Run `$ python manage.py makemigrations` and `$ python manage.py migrate` to update database tables according to your models
-8. Run `$ python manage.py runserver` - the app can be accessed now at `http://127.0.0.1:8000`
+5. Configure interpreter settings to add `my_venv` to the project and restart IDE (**make sure that you have my_venv showing in your command line**)
+6. Run `$ `
+7. Run `$ docker-compose up -d --build` to spin up the MySQL container
+8. Go into the `app` directory (`$ cd app`). Run `$ python manage.py makemigrations` and `$ python manage.py migrate` to update database tables according to your models
+9. Run `$ python manage.py runserver` - the app can be accessed now at `http://127.0.0.1:8000`
