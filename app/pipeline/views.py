@@ -15,7 +15,7 @@ def test_model_list_view(request):
         auto__model=TestModel,
         page_size=20,
         columns__field_one__filter__include=True,
-        columns__field_one__cell__url=TestModel.id
+        columns__field_one__cell__url=lambda row, **_: row.get_absolute_url(),
     )
 
 
