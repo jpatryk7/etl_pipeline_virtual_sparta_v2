@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import list, detail
 from iommi import Table
+from .extract_files import ExtractFiles
 
 ############################
 #  TEST VIEW REMOVE LATER  #

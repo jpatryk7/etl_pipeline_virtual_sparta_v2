@@ -31,7 +31,7 @@ class ExtractFiles:
             return file_list, '.txt'
 
     def check_for_new_files(self) -> list[str]:
-        pass
+        self.s3_resource.Bucket(self.bucket_name).objects.all()
 
     def get_files_as_dataframe(self, prefix: str) -> list[pd.DataFrame]:
         pages = self.paginator.paginate(Bucket=self.bucket_name, Prefix="Talent")
