@@ -1,7 +1,4 @@
 import unittest
-
-import pandas as pd
-
 from app.pipeline.extract_files import *
 
 
@@ -32,7 +29,7 @@ class TestExtractFiles(unittest.TestCase):
         check if the returned file is a dict type
         """
         actual = self.extract._get_file(self.json_filename)[0]
-        self.assertIsInstance(actual, dict)
+        self.assertIsInstance(actual, pd.DataFrame)
 
     def test__get_file_csv(self) -> None:
         """
@@ -46,7 +43,7 @@ class TestExtractFiles(unittest.TestCase):
         check if the returned file is a nested list
         """
         actual = self.extract._get_file(self.txt_filename)[0]
-        self.assertIsInstance(actual, list)
+        self.assertIsInstance(actual, pd.DataFrame)
 
     def test__get_file_unknown_type(self) -> None:
         """
@@ -92,15 +89,26 @@ class TestExtractFiles(unittest.TestCase):
         having one less file than all_items_in_s3
         """
         expected = self.all_items_in_s3[0]
-        actual = '/'.join(self.extract.get_files_as_df(self.all_items_in_s3[1:])[3].values.tolist()[0])
+        _, filenames = self.extract.get_files_as_df(self.all_items_in_s3[1:])
+        actual = '/'.join(filenames.values.tolist()[0])
         self.assertEqual(expected, actual)
 
     def test_get_files_as_df_no_recorder_files(self) -> None:
         """
         Check if the function returns all_items_in_s3 when provided empty recorded_files
         """
-        expected = len(self.all_items_in_s3)
-        actual = len(self.extract.get_files_as_df([])[3])
+        # create subset
+        recorded_files = []
+        expected = 0
+        for ext in ['.json', '.csv', '.txt']:
+            # all files of given type
+            ext_files = [fname for fname in self.all_items_in_s3 if ext in fname]
+            # = 10 or 0.1 of the ext_files length (the smaller one)
+            sub_index = int(len(ext_files) / 10) if int(len(ext_files) / 10) < 10 else 10
+            recorded_files.extend(ext_files[sub_index:])
+            expected += sub_index
+
+        actual = len(self.extract.get_files_as_df(recorded_files)[3])
         self.assertEqual(expected, actual)
 
     def test_get_files_as_df_all_files_recorded(self) -> None:
