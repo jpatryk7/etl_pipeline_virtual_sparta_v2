@@ -20,10 +20,12 @@ class Course(models.Model):
     course_name = models.CharField(max_length=200)
     trainer_id = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)
 
+    def get_absolute_url(self):
+        return self.id
+
 
 class AcademyPerformance(models.Model):
     week = models.IntegerField()
-    student_information_id = models.ForeignKey('StudentInformation', on_delete=models.SET_NULL, null=True)
     analytic = models.IntegerField(null=True, blank=True)
     independent = models.IntegerField(null=True, blank=True)
     determined = models.IntegerField(null=True, blank=True)
@@ -33,6 +35,9 @@ class AcademyPerformance(models.Model):
 
     class Meta:
         unique_together = ['week', 'student_information_id']
+
+    def get_absolute_url(self):
+        return self.id
 
 
 class TechScore(models.Model):
@@ -59,6 +64,9 @@ class TraineePerformance(models.Model):
     strengths = models.ManyToManyField(Strength, blank=True)
     weaknesses = models.ManyToManyField(Weakness, blank=True)
 
+    def get_absolute_url(self):
+        return self.id
+
 
 class StudentInformation(models.Model):
     name = models.CharField(max_length=200)
@@ -74,3 +82,6 @@ class StudentInformation(models.Model):
     invitation_id = models.ForeignKey(Invitation, on_delete=models.SET_NULL, null=True, blank=True)
     course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
     academy_performance_id = models.ForeignKey(AcademyPerformance, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def get_absolute_url(self):
+        return self.id
