@@ -1,4 +1,4 @@
-from typing import Any, Union, Type
+from typing import Union, Type
 import boto3
 import pandas as pd
 import json
@@ -13,7 +13,7 @@ def txt_line_to_list(line: str) -> list[str]:
     :return: list of elements in one row
     :rtype: list[str]
     """
-    semi_row = line.split('-')
+    semi_row = line.split(' - ')
     # first few lines have less than three parts - they are describing the file, and we don't need them
     if len(semi_row) == 2:
         # first part is the name of the test participant
@@ -39,7 +39,45 @@ class ExtractFiles:
         self.s3_resource = boto3.resource('s3')
         self.paginator = self.s3_client.get_paginator('list_objects_v2')
 
-    def _get_file(self, key: str) -> Union[tuple[Any, str], None]:
+    def _get_json_file(self, key: str) -> pd.DataFrame:
+        """
+        Extracts a json file from the S3 bucket with given filename.
+
+        :param str key: name of the file to extract
+        :return: single-row dataframe with json file content
+        :rtype: pd.DataFrame
+        """
+        s3_obj_body = self.s3_client.get_object(Bucket=self.bucket_name, Key=key)["Body"]
+        return pd.DataFrame([json.loads(s3_obj_body.read())])
+
+    def _get_csv_file(self, key: str) -> pd.DataFrame:
+        """
+        Extracts a csv file from the S3 bucket with given filename.
+
+        :param str key: name of the file to extract
+        :return: single-row dataframe with csv file content
+        :rtype: pd.DataFrame
+        """
+        return pd.read_csv(self.s3_client.get_object(Bucket=self.bucket_name, Key=key)["Body"])
+
+    def _get_txt_file(self, key: str) -> pd.DataFrame:
+        """
+        Extracts a txt file from the S3 bucket with given filename and converts its content to appropriate row-like
+        structure.
+
+        :param str key: name of the file to extract
+        :return: single-row dataframe with txt file content
+        :rtype: pd.DataFrame
+        """
+        file_bytes = self.s3_client.get_object(Bucket=self.bucket_name, Key=key)["Body"].readlines()
+        # convert bytes to string and clean it using _txt_line_to_list
+        file_list = []
+        for i, line in enumerate(file_bytes):
+            if i > 2:
+                file_list.append(txt_line_to_list(line.decode("utf-8")))
+        return pd.DataFrame(file_list, columns=["Name", "Psychometrics", "Presentation"])
+
+    def _get_file(self, key: str) -> Union[tuple[pd.DataFrame, int], None]:
         """
         Extracts a file from the S3 bucket with given filename.
 
@@ -49,14 +87,11 @@ class ExtractFiles:
         """
         # use different methods depending on the filetype
         if '.json' in key:
-            return json.loads(self.s3_client.get_object(Bucket=self.bucket_name, Key=key)["Body"].read()), '.json'
+            return self._get_json_file(key), 0
         elif '.csv' in key:
-            return pd.read_csv(self.s3_client.get_object(Bucket=self.bucket_name, Key=key)["Body"]), '.csv'
+            return self._get_csv_file(key), 1
         elif '.txt' in key:
-            file_bytes = self.s3_client.get_object(Bucket=self.bucket_name, Key=key)["Body"].readlines()
-            # convert bytes to string and clean it using _txt_line_to_list
-            file_list = [txt_line_to_list(line.decode("utf-8")) for line in file_bytes]
-            return file_list, '.txt'
+            return self._get_txt_file(key), 2
         else:
             return None
 
@@ -87,28 +122,31 @@ class ExtractFiles:
         else:
             return pd.DataFrame(files_list, columns=["prefix", "filename"])
 
-    def get_files_as_df(self, recorded_files: list[str]) -> tuple:
+    def get_files_as_df(self, recorded_files: list[str]) -> Union[tuple[list[pd.DataFrame], pd.DataFrame], None]:
         """
         Gather any files that are in S3 that were not recorded before.
 
         :param list[str] recorded_files: list of files that were recorded previously
-        :return: tuple of dataframes containing all .json, .csv, .txt files and dataframe with newly discovered files
-        :rtype: tuple
+        :return: tuple of list of dataframes containing all .json, .csv, .txt files and a dataframe with newly
+        discovered files; it may return none if no new files present in the s3
+        :rtype: Union[tuple[list[pd.DataFrame], pd.DataFrame], None]
         """
-        file_df = self._get_all_filenames_df(dtype=pd.DataFrame)
+        filenames = self._get_all_filenames_df(dtype=list)
 
-        files_dict = {'.json': [], '.csv': [], '.txt': []}
+        files = [[], [], []]
         new_filenames = []
 
-        for _, row in file_df.iterrows():
-            if f"{row['prefix']}/{row['filename']}" not in recorded_files:
-                file, ftype = self._get_file(row["filename"])
-                files_dict[ftype].append(file)
-                new_filenames.append([row['prefix'], row['filename']])
+        for i, row in enumerate(filenames):
+            fname = f"{row[0]}/{row[1]}"
+            if fname not in recorded_files:
+                file_df, ftype_index = self._get_file(fname)
+                files[ftype_index].append(file_df)
+                new_filenames.append([row[0], row[1]])
 
-        return (
-            pd.DataFrame(files_dict['.json']),
-            pd.DataFrame(pd.concat(files_dict['.csv'])),
-            pd.DataFrame(files_dict['.txt'], columns=["Name", "Psychometrics", "Presentation"]),
-            pd.DataFrame(new_filenames, columns=["prefix", "filename"])
-        )
+        if new_filenames:
+            return (
+                *[pd.concat(df_list, ignore_index=True) for df_list in files if df_list],
+                pd.DataFrame(new_filenames, columns=["prefix", "filename"])
+            )
+        else:
+            return None
