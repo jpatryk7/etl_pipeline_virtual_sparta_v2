@@ -1,24 +1,15 @@
-from django.shortcuts import render
-from django.views.generic import list, detail
-from iommi import Table
-from .extract_files import ExtractFiles
+from django.views.generic import detail
+from .pages import IndexPage
+from .factory import factory
 
-############################
-#  TEST VIEW REMOVE LATER  #
-############################
-
-from .models import TestModel
+from .models import *
 
 
-def test_model_list_view(request):
-    return Table(
-        auto__model=TestModel,
-        page_size=20,
-        columns__field_one__filter__include=True,
-        columns__field_one__cell__url=lambda row, **_: row.get_absolute_url(),
-    )
+def index(request):
+    factory.standard_factory()
+    return IndexPage()
 
 
 class TestModelDetailView(detail.DetailView):
-    model = TestModel
+    model = StudentInformation
     template_name = 'test-detail.html'
