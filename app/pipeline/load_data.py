@@ -1,0 +1,36 @@
+import pandas as pd
+
+
+class LoadData:
+    def __init__(self):
+        pass
+
+    def student_information(self, df: pd.DataFrame) -> None:
+        pass
+
+    def trainee_performance(self, df: pd.DataFrame, student_info_df: pd.DataFrame) -> None:
+        pass
+
+    def academy_performance(self, df: pd.DataFrame) -> None:
+        pass
+
+    def course(self, df: pd.DataFrame, trainer_df: pd.DataFrame) -> None:
+        pass
+
+    def trainer(self, df: pd.DataFrame) -> None:
+        pass
+
+    def test_score(self, df: pd.DataFrame) -> None:
+        pass
+
+    def strength(self, df: pd.DataFrame) -> None:
+        pass
+
+    def weakness(self, df: pd.DataFrame) -> None:
+        pass
+
+    def invitation(self, df: pd.DataFrame) -> None:
+        pass
+
+    def tech_score(self, df: pd.DataFrame) -> None:
+        pass
