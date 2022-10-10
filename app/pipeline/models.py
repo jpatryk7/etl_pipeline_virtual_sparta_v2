@@ -44,9 +44,9 @@ class Trainer(models.Model):
 
 
 class Course(models.Model):
-    week = models.IntegerField()
     course_name = models.CharField(max_length=200)
     trainer_id = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)
+    date = models.DateField()
 
     def get_absolute_url(self):
         return self.id
@@ -67,6 +67,7 @@ class Course(models.Model):
 
 
 class AcademyPerformance(models.Model):
+    course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)
     week = models.IntegerField()
     analytic = models.IntegerField(null=True, blank=True)
     independent = models.IntegerField(null=True, blank=True)

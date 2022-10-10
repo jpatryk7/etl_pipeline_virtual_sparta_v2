@@ -1,3 +1,4 @@
+import random
 import unittest
 from app.pipeline.extract_files import *
 
@@ -29,6 +30,7 @@ class TestExtractFiles(unittest.TestCase):
         check if the returned file is a dict type
         """
         actual = self.extract._get_file(self.json_filename)[0]
+        print(actual.columns)
         self.assertIsInstance(actual, pd.DataFrame)
 
     def test__get_file_csv(self) -> None:
@@ -99,16 +101,13 @@ class TestExtractFiles(unittest.TestCase):
         """
         # create subset
         recorded_files = []
-        expected = 0
+        expected = 15
+        actual = 0
         for ext in ['.json', '.csv', '.txt']:
             # all files of given type
             ext_files = [fname for fname in self.all_items_in_s3 if ext in fname]
-            # = 10 or 0.1 of the ext_files length (the smaller one)
-            sub_index = int(len(ext_files) / 10) if int(len(ext_files) / 10) < 10 else 10
-            recorded_files.extend(ext_files[sub_index:])
-            expected += sub_index
+            actual += len(self.extract.get_files_as_df(ext_files[0:5], ext=ext)[0])
 
-        actual = len(self.extract.get_files_as_df(recorded_files)[3])
         self.assertEqual(expected, actual)
 
     def test_get_files_as_df_all_files_recorded(self) -> None:
