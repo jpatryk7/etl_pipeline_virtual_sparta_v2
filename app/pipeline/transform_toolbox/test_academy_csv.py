@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 import pandas as pd
+from .academy_csv import AcademyCSV
 
 
 class TestAcademyCSV(unittest.TestCase):
