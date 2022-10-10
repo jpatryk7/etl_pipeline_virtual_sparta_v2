@@ -24,3 +24,8 @@ class AcademyCSV:
         #   YOUR OTHER CODE GOES HERE   #
         #################################
         pass
+
+
+if __name__ == '__main__':
+    # run your code here for sanity checks
+    pass
