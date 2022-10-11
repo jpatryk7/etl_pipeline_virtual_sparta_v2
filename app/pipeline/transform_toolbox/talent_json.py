@@ -1,28 +1,17 @@
 """
-Note:
-    Generate four tables:
-        1. student name, date, self-dev, geo-flex, financial support, result, course interest
-        2. student name, date, weakness
-        3. student name, date, strength
-        4. student name, date, tech self score, tech score value
+Class helps to clean data. Input raw data, output is 4 tables with column names:
+    1. student name, date, self-dev, geo-flex, financial support, result, course interest
+    2. student name, date, strength
+    3. student name, date, weakness
+    4. student name, date, tech self score, tech score value
 """
+
 import pandas as pd
+from typing import Tuple
 
 
 class TalentJSON:
-    def __init__(self, dataframe: pd.DataFrame) -> None:
-        self.dataframe = pd.DataFrame(dataframe)
-
-
-    # def transform_talent_json(self, raw_df: pd.DataFrame) -> tuple[
-    #     pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    #     """
-    #     Describe what the function does here
-    #     """
-    #     #################################
-    #     #   YOUR OTHER CODE GOES HERE   #
-    #     #################################
-    #     pass
+    def __init__(self) -> None:
 
     def get_strengths(self) -> dict:
         """
@@ -92,6 +81,26 @@ class TalentJSON:
         tech_score = pd.DataFrame.from_dict(tech)
         tech_score = tech_score.transpose()
         return tech_score
+
+    def transform_talent_json(self, raw_df: pd.DataFrame) -> Tuple[
+        pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """
+        Takes raw data and returns tuple with 4 tables:
+        1. student name, date, self-dev, geo-flex, financial support, result, course interest
+        2. student name, date, strength
+        3. student name, date, weakness
+        4. student name, date, tech self score, tech score value
+        """
+        self.dataframe = raw_df
+        stre = self.get_strengths()
+        weak = self.get_weaknesses()
+        tech = self.get_tech_score()
+
+        emp = self.remove_columns()
+        strengths = self.attributes_to_df(stre)
+        weakness = self.attributes_to_df(weak)
+        technic = self.tech_to_df(tech)
+        return emp, strengths, weakness, technic
 
 
 if __name__ == '__main__':
