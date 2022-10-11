@@ -23,6 +23,14 @@ class TalentTXT:
         #################################
         pass
 
+    def replace_hyphens(self, text: str):
+        ''' Replaces Hyphens in a text file with a comma. Useful to transform messy text files '''
+
+        return text.replace("-", ",")
+
+    def replace_colon(self, text: str):
+        ''' Replaces all instances of a colon with a comma'''
+        return text.replace(":",",")
 
 if __name__ == '__main__':
     # run your code here for sanity checks
