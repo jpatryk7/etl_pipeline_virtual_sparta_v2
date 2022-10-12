@@ -29,7 +29,7 @@ class TestExtractFiles(unittest.TestCase):
         """
         check if the returned file is a dict type
         """
-        actual = self.extract._get_file(self.json_filename)[0]
+        actual = self.extract._get_file(self.json_filename)
         print(actual.columns)
         self.assertIsInstance(actual, pd.DataFrame)
 
@@ -37,14 +37,14 @@ class TestExtractFiles(unittest.TestCase):
         """
         check if the returned file is a dataframe type
         """
-        actual = self.extract._get_file(self.csv_filename)[0]
+        actual = self.extract._get_file(self.csv_filename)
         self.assertIsInstance(actual, pd.DataFrame)
 
     def test__get_file_txt(self) -> None:
         """
         check if the returned file is a nested list
         """
-        actual = self.extract._get_file(self.txt_filename)[0]
+        actual = self.extract._get_file(self.txt_filename)
         self.assertIsInstance(actual, pd.DataFrame)
 
     def test__get_file_unknown_type(self) -> None:
@@ -91,9 +91,12 @@ class TestExtractFiles(unittest.TestCase):
         having one less file than all_items_in_s3
         """
         expected = self.all_items_in_s3[0]
-        _, filenames = self.extract.get_files_as_df(self.all_items_in_s3[1:])
-        actual = '/'.join(filenames.values.tolist()[0])
-        self.assertEqual(expected, actual)
+        for prefix in ["Talent", "Academy"]:
+            for ext in ['.json', '.csv', '.txt']:
+                _, filenames = self.extract.get_files_as_df(self.all_items_in_s3[1:], prefix, ext)
+                if type(filenames) is pd.DataFrame:
+                    actual = '/'.join(filenames.values.tolist()[0])
+                    self.assertEqual(expected, actual)
 
     def test_get_files_as_df_no_recorder_files(self) -> None:
         """
@@ -103,10 +106,11 @@ class TestExtractFiles(unittest.TestCase):
         recorded_files = []
         expected = 15
         actual = 0
-        for ext in ['.json', '.csv', '.txt']:
-            # all files of given type
-            ext_files = [fname for fname in self.all_items_in_s3 if ext in fname]
-            actual += len(self.extract.get_files_as_df(ext_files[0:5], ext=ext)[0])
+        for prefix in ["Talent", "Academy"]:
+            for ext in ['.json', '.csv', '.txt']:
+                # all files of given type
+                ext_files = [fname for fname in self.all_items_in_s3 if ext in fname]
+                actual += len(self.extract.get_files_as_df(ext_files[0:5], prefix, ext)[0])
 
         self.assertEqual(expected, actual)
 
@@ -114,6 +118,15 @@ class TestExtractFiles(unittest.TestCase):
         """
         Check if the function returns None when provided recorded_files same as all_items_in_s3
         """
-        expected = None
-        actual = self.extract.get_files_as_df(self.all_items_in_s3)
-        self.assertEqual(expected, actual)
+        for prefix in ["Talent", "Academy"]:
+            for ext in [".csv", ".json", ".txt"]:
+                actual = self.extract.get_files_as_df(self.all_items_in_s3, prefix, ext)
+                self.assertEqual((None, None), actual)
+
+    def test_get_files_as_df_with_filename_column(self) -> None:
+        file_list = self.all_items_in_s3
+        file_list.remove(self.csv_filename)
+        df, _ = self.extract.get_files_as_df(file_list, "Talent", ".csv", filename_in_df=True)
+        actual = df.columns.tolist()
+        self.assertIn("filename", actual)
+
