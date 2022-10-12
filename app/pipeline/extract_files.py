@@ -129,13 +129,15 @@ class ExtractFiles:
         else:
             return pd.DataFrame(files_list, columns=["prefix", "filename"])
 
-    def get_files_as_df(self, recorded_files: list[str], prefix: str, ext: str) -> Union[tuple[pd.DataFrame, pd.DataFrame], tuple[None, None]]:
+    def get_files_as_df(self, recorded_files: list[str], prefix: str, ext: str, *, filename_in_df: bool = False) -> Union[tuple[pd.DataFrame, pd.DataFrame], tuple[None, None]]:
         """
         Gather any files that are in S3 that were not recorded before.
 
         :param list[str] recorded_files: list of files that were recorded previously
         :param str ext: '.json' | '.csv' | '.txt'
         :param str prefix: 'Academy' | 'Talent'
+        :param bool filename_in_df: if set to True the function will add an extra column with filename where the entry
+        was taken from
         :return: tuple of list of dataframes containing all .json, .csv, .txt files and a dataframe with newly
         discovered files; it may return none if no new files present in the s3
         :rtype: Union[tuple[list[pd.DataFrame], pd.DataFrame], None]
@@ -145,27 +147,32 @@ class ExtractFiles:
         files_content_list = []
         new_filenames = []
 
+        no_of_recorded_files = len([f for f in recorded_files if ext in str(f) and prefix in str(f)])
         no_of_files = len([f for f in filenames if ext in str(f) and prefix in str(f)])
-        print(f"Extracting {no_of_files} {ext} files from {self.bucket_name}/{prefix}...")
-        if not no_of_files:
-            return None, None
+        print(f"Extracting {no_of_files - no_of_recorded_files} {ext} files from {self.bucket_name}/{prefix}...")
 
         for i, row in enumerate(filenames):
             fname = f"{row[0]}/{row[1]}"
             if fname not in recorded_files:
                 if prefix in fname and ext in fname:
                     file_df = self._get_file(fname)
+                    if filename_in_df:
+                        file_df["filename"] = fname
                     files_content_list.append(file_df)
                     new_filenames.append([row[0], row[1]])
 
-        return (
-            pd.concat(files_content_list, ignore_index=True),
-            pd.DataFrame(new_filenames, columns=["prefix", "filename"])
-        )
+        if files_content_list:
+            return (
+                pd.concat(files_content_list, ignore_index=True),
+                pd.DataFrame(new_filenames, columns=["prefix", "filename"])
+            )
+        else:
+            return None, None
 
 
 if __name__ == "__main__":
-    # extract_files = ExtractFiles("data32-final-project-files")
+    pass
+    extract_files = ExtractFiles("data32-final-project-files")
 
     # all_filenames = extract_files._get_all_filenames_df(dtype=list)
     # pd.DataFrame(
@@ -181,18 +188,28 @@ if __name__ == "__main__":
     #     [row for row in all_filenames if row[0] == "Talent" and ".txt" in row[1]], columns=["Prefix", "Filename"]
     # ).to_pickle("./pickle_jar/talent_txt_filenames.pkl")
 
-    print(f"academy_csv_filenames.pkl:\n{pd.read_pickle('./pickle_jar/academy_csv_filenames.pkl')}")
-    print(f"talent_csv_filenames.pkl:\n{pd.read_pickle('./pickle_jar/talent_csv_filenames.pkl')}")
-    # print(f"talent_json_filenames.pkl:\n{pd.read_pickle('./pickle_jar/talent_json_filenames.pkl')}")
-    # print(f"talent_txt_filenames.pkl:\n{pd.read_pickle('./pickle_jar/talent_txt_filenames.pkl')}")
+    # pd.set_option('display.max_columns', None)
 
     # extract_files.get_files_as_df([], 'Academy', '.csv')[0].to_pickle("./pickle_jar/academy_csv.pkl")
     # extract_files.get_files_as_df([], 'Talent', '.csv')[0].to_pickle("./pickle_jar/talent_csv.pkl")
     # extract_files.get_files_as_df([], 'Talent', '.json')[0].to_pickle("./pickle_jar/talent_json.pkl")
     # extract_files.get_files_as_df([], 'Talent', '.txt')[0].to_pickle("./pickle_jar/talent_txt.pkl")
 
-    print(f"academy_csv.pkl:\n{pd.read_pickle('./pickle_jar/academy_csv.pkl').columns}")
-    print(f"talent_csv.pkl:\n{pd.read_pickle('./pickle_jar/talent_csv.pkl').columns}")
+    # extract_files.get_files_as_df([], 'Academy', '.csv', filename_in_df=True)[0].to_pickle("./pickle_jar/academy_csv_v2.pkl")
+    # extract_files.get_files_as_df([], 'Talent', '.csv', filename_in_df=True)[0].to_pickle("./pickle_jar/talent_csv_v2.pkl")
+    # extract_files.get_files_as_df([], 'Talent', '.txt', filename_in_df=True)[0].to_pickle("./pickle_jar/talent_txt_v2.pkl")
+
+    # print(f"academy_csv.pkl:\n{pd.read_pickle('./pickle_jar/academy_csv.pkl').columns}")
+    # print(f"talent_csv.pkl:\n{pd.read_pickle('./pickle_jar/talent_csv.pkl').head()}")
     # print(f"talent_json.pkl:\n{pd.read_pickle('./pickle_jar/talent_json.pkl').columns}")
     # print(f"talent_txt.pkl:\n{pd.read_pickle('./pickle_jar/talent_txt.pkl').columns}")
+
+    # print(f"academy_csv_filenames.pkl:\n{pd.read_pickle('./pickle_jar/academy_csv_filenames.pkl')}")
+    # print(f"talent_csv_filenames.pkl:\n{pd.read_pickle('./pickle_jar/talent_csv_filenames.pkl')}")
+    # print(f"talent_json_filenames.pkl:\n{pd.read_pickle('./pickle_jar/talent_json_filenames.pkl')}")
+    # print(f"talent_txt_filenames.pkl:\n{pd.read_pickle('./pickle_jar/talent_txt_filenames.pkl')}")
+
+    # print(f"academy_csv.pkl:\n{pd.read_pickle('./pickle_jar/academy_csv_v2.pkl').columns}")
+    # print(f"talent_csv.pkl:\n{pd.read_pickle('./pickle_jar/talent_csv_v2.pkl').columns}")
+    # print(f"talent_txt.pkl:\n{pd.read_pickle('./pickle_jar/talent_txt_v2.pkl').columns}")
 
