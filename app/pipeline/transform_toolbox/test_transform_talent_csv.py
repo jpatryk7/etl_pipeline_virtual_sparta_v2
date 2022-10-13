@@ -10,7 +10,6 @@ class TestTransformTalentCSV(unittest.TestCase):
     def setUp(self) -> None:
         self.pickle_jar_path = Path(__file__).resolve().parent.parent / "pickle_jar"
         self.raw_df = pd.read_pickle(self.pickle_jar_path / "talent_csv_v2.pkl")
-        self.filenames = pd.read_pickle(self.pickle_jar_path / "talent_csv_filenames.pkl")
         self.talent_csv_transform = TalentCSV()
         self.student_information_df, self.invitation_df = self.talent_csv_transform.transform_talent_csv(self.raw_df)
         self.dt = pd.DataFrame({
@@ -124,7 +123,6 @@ class TestTransformTalentCSV(unittest.TestCase):
         self.assertTrue(all(is_correct_format))
 
     def test_transform_talent_csv_col_format_postcode(self) -> None:
-        # valid formats: AA9A 9AA, A9A 9AA, A9 9AA, A99 9AA, AA9 9AA, AA99 9AA
         actual = self.student_information_df["postcode"]
         # check for double spaces
         self.assertTrue(all([' ' not in a for a in actual if not pd.isnull(a)]))
