@@ -1,7 +1,7 @@
-from typing import Type, Union, Any
+from typing import Type, Union
 from faker import Faker
 import random
-from ..models import (
+from app.pipeline.models import (
     StudentInformation,
     TraineePerformance,
     AcademyPerformance,
@@ -19,7 +19,7 @@ def many_to_many_relationship_generator(
         field_name: str,
         other_model: Type[Union[TechScore, Strength, Weakness]],
         *, null: bool = True,
-        max_relations: int = 5) -> None:
+        max_relations: int = 5) -> None:  # pragma: no cover
     # list of all TraineePerformance objects and objects to connect to (e.g. all TechScore entries)
     trainee_performance_obj_all = list(TraineePerformance.objects.all())
     other_model_obj_all = list(other_model.objects.all())
@@ -47,7 +47,7 @@ def many_to_many_relationship_generator(
             raise Exception(f"field_name must be 'tech_scores', 'strengths', 'weaknesses'. Got {field_name} instead.")
 
 
-class IDManager:
+class IDManager:  # pragma: no cover
     """
     Simple ID helper class to keep track of one-to-one relations
     """

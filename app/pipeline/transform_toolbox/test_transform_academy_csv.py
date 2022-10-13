@@ -8,9 +8,15 @@ from .date_format_test import date_format_test
 class TestTransformAcademyCSV(unittest.TestCase):
     def setUp(self) -> None:
         self.pickle_jar_path = Path(__file__).resolve().parent.parent / "pickle_jar"
-        self.raw_df = pd.read_pickle(self.pickle_jar_path / "academy_csv.pkl")
+        self.raw_df = pd.read_pickle(self.pickle_jar_path / "academy_csv_v2.pkl")
         self.academy_csv_transform = AcademyCSV()
         self.trainer_df, self.course_df, self.academy_performance_df = self.academy_csv_transform.transform_academy_csv(self.raw_df)
+        self.dt = pd.DataFrame({
+            'float': [1.0],
+            'int': [1],
+            'other': ['foo'],
+            'bool': [True]
+        })
 
     ############################
     #   TESTING COLUMN NAMES   #
@@ -37,17 +43,17 @@ class TestTransformAcademyCSV(unittest.TestCase):
     ################################
 
     def test_transform_academy_csv_trainer_df_datatype(self) -> None:
-        expected = {str}
+        expected = {self.dt['other'].dtype}
         actual = set(self.trainer_df.dtypes.tolist())
         self.assertEqual(expected, actual)
 
     def test_transform_academy_csv_course_df_datatype(self) -> None:
-        expected = {str, str, list[int]}
+        expected = {self.dt['other'].dtype}
         actual = set(self.course_df.dtypes.tolist())
         self.assertEqual(expected, actual)
 
     def test_transform_academy_csv_academy_performance_df_datatype(self) -> None:
-        expected = {str, list, str, int, int, int, int, int, int}
+        expected = {self.dt['other'].dtype, self.dt['int'].dtype}
         actual = set(self.academy_performance_df.dtypes.tolist())
         self.assertEqual(expected, actual)
 
@@ -57,14 +63,18 @@ class TestTransformAcademyCSV(unittest.TestCase):
 
     def test_transform_academy_csv_trainer_df_duplicates(self) -> None:
         actual = self.trainer_df.duplicated().tolist()
-        self.assertTrue(all(actual))
+        self.assertTrue(not all(actual))
 
     def test_transform_academy_csv_course_df_duplicates(self) -> None:
-        actual = self.course_df.duplicated().tolist()
+        actual = self.course_df
+        actual["date"] = actual["date"].apply(lambda x: tuple(x))
+        actual = actual.duplicated().tolist()
         self.assertTrue(all(actual))
 
     def test_transform_academy_csv_academy_performance_df_duplicates(self) -> None:
-        actual = self.academy_performance_df.duplicated().tolist()
+        actual = self.academy_performance_df
+        actual["date"] = actual["date"].apply(lambda x: tuple(x))
+        actual = actual.duplicated().tolist()
         self.assertTrue(all(actual))
 
     #########################################
@@ -73,9 +83,9 @@ class TestTransformAcademyCSV(unittest.TestCase):
 
     def test_transform_academy_csv_col_format_person_name(self) -> None:
         list_actual = [
-            self.trainer_df["trainer_name"].tolist(),
-            self.course_df["trainer_name"].tolist(),
-            self.academy_performance_df["student_name"].tolist()
+            self.trainer_df["trainer_name"],
+            self.course_df["trainer_name"],
+            self.academy_performance_df["student_name"]
         ]
         for actual in list_actual:
             self.assertTrue(all([a.istitle() for a in actual if not pd.isnull(a)]))
@@ -83,23 +93,26 @@ class TestTransformAcademyCSV(unittest.TestCase):
 
     def test_transform_academy_csv_col_format_course_name(self) -> None:
         list_actual = [
-            self.course_df["course_name"].tolist(),
-            self.academy_performance_df["course_name"].tolist()
+            self.course_df["course_name"],
+            self.academy_performance_df["course_name"]
         ]
         for actual in list_actual:
-            self.assertTrue(all([a.count('  ') == 0 for a in actual if not pd.isnull(a)]))
-            self.assertTrue(all([a.split(' ')[0].istitle() for a in actual if not pd.isnull(a)]))
-            self.assertTrue(all([a.split(' ')[1].isdigit() for a in actual if not pd.isnull(a)]))
+            for row in actual:
+                if row:
+                    self.assertTrue(row.count('  ') == 0,
+                                    f"Duplicate spaces in entry {row} in {actual.name}. row.count('  ') = {row.count('  ')}")
+                    for word in row.split(' '):
+                        if len(word) > 2:
+                            self.assertTrue(
+                                (word[0].isupper() or word[1].isupper()) and not
+                                (word[0].isupper() and word[1].isupper()),
+                                f"Word '{word}' in entry '{row}' in {actual.name}."
+                            )
 
     def test_transform_academy_csv_col_format_date(self) -> None:
-        actual_list = [self.course_df["date"].tolist(), self.academy_performance_df["date"].tolist()]
+        actual_list = [self.course_df["date"], self.academy_performance_df["date"]]
         for actual in actual_list:
             date_format_test(actual)
-
-    def test_transform_academy_csv_academy_performance_df_scores_cols_format(self) -> None:
-        actual_list = [self.academy_performance_df[key] for key in ["course_name", "analytic", "independent", "determined", "professional", "studious", "imaginative"]]
-        for actual in actual_list:
-            self.assertTrue(all([0 <= a <= 10 for a in actual if not pd.isnull(a)]))
 
 
 if __name__ == '__main__':
