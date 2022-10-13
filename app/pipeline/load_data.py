@@ -24,16 +24,7 @@ class LoadData:
         pass
 
     def academy_performance(self, df: pd.Series) -> None:
-        academy_performance_obj = AcademyPerformance(
-            week=df["week"],
-            analytic=df["Analytic"],
-            independent=df["Independent"],
-            determined=df["Determined"],
-            professional=df["Professional"],
-            studious=df["Studious"],
-            imaginative=df["Imaginative"]
-        )
-        academy_performance_obj.save()
+        pass
 
     def course(self, df: pd.DataFrame, trainer_df: pd.DataFrame) -> None:
         pass
