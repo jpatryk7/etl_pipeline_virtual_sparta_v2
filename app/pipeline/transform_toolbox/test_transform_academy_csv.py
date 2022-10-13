@@ -9,8 +9,8 @@ class TestTransformAcademyCSV(unittest.TestCase):
     def setUp(self) -> None:
         self.pickle_jar_path = Path(__file__).resolve().parent.parent / "pickle_jar"
         self.raw_df = pd.read_pickle(self.pickle_jar_path / "academy_csv_v2.pkl")
-        self.academy_csv_transform = AcademyCSV()
-        self.trainer_df, self.course_df, self.academy_performance_df = self.academy_csv_transform.transform_academy_csv(self.raw_df)
+        self.academy_csv_transform = AcademyCSV(self.raw_df)
+        self.trainer_df, self.course_df, self.academy_performance_df = self.academy_csv_transform.transform_academy_csv()
         self.dt = pd.DataFrame({
             'float': [1.0],
             'int': [1],
@@ -34,7 +34,7 @@ class TestTransformAcademyCSV(unittest.TestCase):
 
     def test_transform_academy_csv_academy_performance_df_col_names(self) -> None:
         expected = {"student_name", "date", "course_name", "analytic", "independent", "determined", "professional",
-                    "studious", "imaginative"}
+                    "studious", "imaginative", "week"}
         actual = set(self.academy_performance_df.columns.tolist())
         self.assertEqual(expected, actual)
 
@@ -69,13 +69,13 @@ class TestTransformAcademyCSV(unittest.TestCase):
         actual = self.course_df
         actual["date"] = actual["date"].apply(lambda x: tuple(x))
         actual = actual.duplicated().tolist()
-        self.assertTrue(all(actual))
+        self.assertTrue(not all(actual))
 
     def test_transform_academy_csv_academy_performance_df_duplicates(self) -> None:
         actual = self.academy_performance_df
         actual["date"] = actual["date"].apply(lambda x: tuple(x))
         actual = actual.duplicated().tolist()
-        self.assertTrue(all(actual))
+        self.assertTrue(not all(actual))
 
     #########################################
     #   TESTING FORMATTING OF EACH COLUMN   #
