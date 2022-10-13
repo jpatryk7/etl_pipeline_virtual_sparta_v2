@@ -7,7 +7,7 @@ from .date_format_test import date_format_test
 
 class TestTransformTalentJSON(unittest.TestCase):
     def setUp(self) -> None:
-        self.pickle_jar_path = Path(__file__).resolve().parent.parent / "pickle_jar"
+        self.pickle_jar_path = Path(__file__).parent.parent.resolve() / "pickle_jar"
         self.raw_df = pd.read_pickle(self.pickle_jar_path / "talent_json.pkl")
         self.talent_json_transform = TalentJSON(self.raw_df)
         (
@@ -133,7 +133,7 @@ class TestTransformTalentJSON(unittest.TestCase):
         self.assertTrue(all([a == "Pass" or "Fail" for a in actual if not pd.isnull(a)]))
 
     def test_transform_talent_json_col_format_tech_self_score_value(self) -> None:
-        actual = self.trainee_performance_df["value"].tolist()
+        actual = self.tech_self_score_junction_df["value"].tolist()
         self.assertTrue(all([0 <= a for a in actual]))
 
 

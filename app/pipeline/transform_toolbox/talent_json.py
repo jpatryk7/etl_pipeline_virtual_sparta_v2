@@ -7,51 +7,14 @@ Class helps to clean data. Input raw data, output is 4 tables with column names:
 """
 
 import pandas as pd
+import numpy as np
 from typing import Tuple
+from datetime import datetime
 
 
 class TalentJSON:
     def __init__(self, raw_df: pd.DataFrame) -> None:
         self.dataframe = raw_df
-
-    def get_strengths(self) -> dict:
-        """
-        Create a dictionary with key: name and values: strengths
-        :return: dictionary with key: name and values: strength
-        :rtype: dict
-        """
-        strengths = {}
-        for i in range(len(self.dataframe)):
-            name = self.dataframe.iloc[i, 0]
-            strength = self.dataframe.iloc[i, 3]
-            strengths[name] = strength
-        return strengths
-
-    def get_weaknesses(self) -> dict:
-        """
-        Create a dictionary with key: name and values: weaknesses
-        :return: dictionary with key: name and values: weakness
-        :rtype: dict
-        """
-        weaknesses = {}
-        for i in range(len(self.dataframe)):
-            name = self.dataframe.iloc[i, 0]
-            weakness = self.dataframe.iloc[i, 4]
-            weaknesses[name] = weakness
-        return weaknesses
-
-    def get_tech_score(self) -> dict:
-        """
-        Create a dictionary with key: name and values: tech_score
-        :return: dictionary with key: name and values: tech_score
-        :rtype: dict
-        """
-        tech_score = {}
-        for i in range(len(self.dataframe)):
-            name = self.dataframe.iloc[i, 0]
-            tech = self.dataframe.iloc[i, 2]
-            tech_score[name] = tech
-        return tech_score
 
     def remove_columns_for_weaknesses(self):
         """
@@ -89,7 +52,19 @@ class TalentJSON:
             list_of_weaknesses.append(small_df)
         result = pd.concat(list_of_weaknesses)
         result = result.rename(columns={"name": "student_name"})
+
+
+
+        result['date'] = pd.to_datetime(result['date'], dayfirst=True)
+        result['day'] = result['date'].map(lambda x: x.day)
+        result['month'] = result['date'].map(lambda x: x.month)
+        result['year'] = result['date'].map(lambda x: x.year)
+        result['date'] = result['day'].map(str) + '-' + result['month'].map(str) + '-' + result['year'].map(str)
+        result['date'] = result.date.apply(lambda x: x.split('-'))
+        result['date'] = result['date'].apply(lambda x: [int(i) for i in x])
+        result = result.drop(['day', 'month', 'year'], axis=1)
         return result
+
     def remove_columns_for_strengths(self):
         """
         Create dataframe with name, date and strengths.
@@ -126,6 +101,16 @@ class TalentJSON:
             list_of_strengths.append(small_df)
         result = pd.concat(list_of_strengths)
         result = result.rename(columns={"name": "student_name"})
+
+
+        result['date'] = pd.to_datetime(result['date'], dayfirst=True)
+        result['day'] = result['date'].map(lambda x: x.day)
+        result['month'] = result['date'].map(lambda x: x.month)
+        result['year'] = result['date'].map(lambda x: x.year)
+        result['date'] = result['day'].map(str) + '-' + result['month'].map(str) + '-' + result['year'].map(str)
+        result['date'] = result.date.apply(lambda x: x.split('-'))
+        result['date'] = result['date'].apply(lambda x: [int(i) for i in x])
+        result = result.drop(['day', 'month', 'year'], axis=1)
         return result
 
     def remove_columns_for_tech(self):
@@ -148,7 +133,9 @@ class TalentJSON:
         self_score = pd.json_normalize(data['tech_self_score'])
         data = data.drop(columns='tech_self_score')
         data3 = pd.concat([data, self_score], axis=1)
-        data3 = data3.rename(columns={'C#':'tech_1', 'Java':'tech_2', 'R':'tech_3', 'JavaScript':'tech_4', 'Python':'tech_5', 'C++':'tech_6', 'Ruby':'tech_7', 'SPSS':'tech_8', 'PHP':'tech_9'})
+        data3 = data3.rename(
+            columns={'C#': 'tech_1', 'Java': 'tech_2', 'R': 'tech_3', 'JavaScript': 'tech_4', 'Python': 'tech_5',
+                     'C++': 'tech_6', 'Ruby': 'tech_7', 'SPSS': 'tech_8', 'PHP': 'tech_9'})
         return data3
 
     def normalise_tech(self):
@@ -157,17 +144,28 @@ class TalentJSON:
         :return: dataframe with columns: student_name, date, strength.
         :rtype: pd.DataFrame
         """
-        # headers = ['C#', 'Java', 'R', 'JavaScript', 'Python', 'C++', 'Ruby', 'SPSS', 'PHP']
         headers = ['tech_1', 'tech_2', 'tech_3', 'tech_4', 'tech_5', 'tech_6', 'tech_7', 'tech_8', 'tech_9']
         list_of_tech = []
         for column_name in headers:
             small_df = self.make_junction_tech()[['name', 'date', column_name]].copy()
-            small_df = (pd.wide_to_long(small_df.reset_index(), stubnames='tech', i=['index'], j='skill',
+            small_df = (pd.wide_to_long(small_df.reset_index(), stubnames='tech', i=['index'], j='tech_self_score',
                                         suffix=r'\w+')).reset_index(level=1, drop=False)
             list_of_tech.append(small_df)
         result = pd.concat(list_of_tech)
-        result = result.rename(columns={"name": "student_name", 'tech':'value'})
-        result = result.replace(['_1', '_2', '_3', '_4', '_5','_6','_7','_8','_9'], ['C#', 'Java', 'R', 'JavaScript', 'Python', 'C++', 'Ruby', 'SPSS', 'PHP'])
+        result = result.rename(columns={"name": "student_name", 'tech': 'value'})
+        result = result.replace(['_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
+                                ['C#', 'Java', 'R', 'JavaScript', 'Python', 'C++', 'Ruby', 'SPSS', 'PHP'])
+        result = result.dropna()
+        result = result.astype({'value': np.int64})
+
+        result['date'] = pd.to_datetime(result['date'], dayfirst=True)
+        result['day'] = result['date'].map(lambda x: x.day)
+        result['month'] = result['date'].map(lambda x: x.month)
+        result['year'] = result['date'].map(lambda x: x.year)
+        result['date'] = result['day'].map(str) + '-' + result['month'].map(str) + '-' + result['year'].map(str)
+        result['date'] = result.date.apply(lambda x: x.split('-'))
+        result['date'] = result['date'].apply(lambda x: [int(i) for i in x])
+        result = result.drop(['day', 'month', 'year'], axis=1)
         return result
 
     def remove_columns(self) -> pd.DataFrame:
@@ -179,28 +177,22 @@ class TalentJSON:
         new_dataframe = self.dataframe.drop(columns=['tech_self_score', 'strengths', 'weaknesses'])
         new_dataframe = new_dataframe.rename(columns={"name": "student_name",
                                                       "financial_support_self": "financial_support"})
+        new_dataframe['self_development'] = new_dataframe['self_development'].str.replace('No', '')
+        new_dataframe['geo_flex'] = new_dataframe['geo_flex'].str.replace('No', '')
+        new_dataframe['financial_support'] = new_dataframe['financial_support'].str.replace('No', '')
+        new_dataframe['result'] = new_dataframe['result'].str.replace('Fail', '')
+        new_dataframe = new_dataframe.astype({'geo_flex': bool, 'self_development': bool,
+                                              'financial_support': bool, 'result': bool})
+
+        new_dataframe['date'] = pd.to_datetime(new_dataframe['date'], dayfirst=True)
+        new_dataframe['day'] = new_dataframe['date'].map(lambda x: x.day)
+        new_dataframe['month'] = new_dataframe['date'].map(lambda x: x.month)
+        new_dataframe['year'] = new_dataframe['date'].map(lambda x: x.year)
+        new_dataframe['date'] = new_dataframe['day'].map(str) + '-' + new_dataframe['month'].map(str) + '-' + new_dataframe['year'].map(str)
+        new_dataframe['date'] = new_dataframe.date.apply(lambda x: x.split('-'))
+        new_dataframe['date'] = new_dataframe['date'].apply(lambda x: [int(i) for i in x])
+        new_dataframe = new_dataframe.drop(['day', 'month', 'year'], axis=1)
         return new_dataframe
-
-    def attributes_to_df(self, attribute: dict) -> pd.DataFrame:
-        """
-        Converts a dictionary with attributes to a dataframe
-        :param dict attribute: takes a dictionary with key: name and values: attribute
-        :return: dataframe with key: name and columns: attribute
-        :rtype: pd.DataFrame
-        """
-        df = pd.DataFrame.from_dict(attribute, orient='index')
-        return df
-
-    def tech_to_df(self, tech: dict) -> pd.DataFrame:
-        """
-        Converts a dictionary with dictionary to a dataframe
-        :param dict tech: takes a dictionary with key: name and values: tech_score
-        :return:
-        :rtype: pd.DataFrame
-        """
-        tech_score = pd.DataFrame.from_dict(tech)
-        tech_score = tech_score.transpose()
-        return tech_score
 
     def transform_talent_json(self) -> Tuple[
         pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -211,16 +203,10 @@ class TalentJSON:
         3. student name, date, weakness
         4. student name, date, tech self score, tech score value
         """
-        # stre = self.get_strengths()
-        # weak = self.get_weaknesses()
-        tech = self.get_tech_score()
-
         emp = self.remove_columns()
-        # strengths = self.attributes_to_df(stre)
         strengths = self.normalise_strengths()
-        # weakness = self.attributes_to_df(weak)
         weakness = self.normalise_weaknesses()
-        technic = self.tech_to_df(tech)
+        technic = self.normalise_tech()
         return emp, weakness, strengths, technic
 
 
@@ -230,32 +216,4 @@ if __name__ == '__main__':
     pickle_jar_path = Path(__file__).parent.parent.resolve() / "pickle_jar"
     raw = pd.read_pickle(pickle_jar_path / 'talent_json.pkl')
     check = TalentJSON(raw)
-    # pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-
-    # tech = check.get_tech_score()
-    # tech2 = check.tech_to_df(tech)
-    # print(tech2.head(2))
-    # weak = check.get_weaknesses()
-    # weak2 = check.attributes_to_df(weak)
-    # print(weak2.head(2))
-    # weak = check.normalise_weaknesses()
-    # print(weak.head(2))
-
-    # aaa = check.make_junction_strengths()
-    # print(aaa.head(3))
-    # bbb = check.make_junction_tech()
-    # print(bbb.head(3))
-    tech = check.normalise_tech()
-    print(tech)
-
-    # work = check.get_weaknesses()
-    # work_df = check.attributes_to_df(work)
-    # weak = check.remove_columns_for_weaknesses()
-    # print(weak.head(1))
-    # weak = check.norma
-    # print(work_df)
-    # colu = set(check.remove_columns_for_weaknesses().columns.tolist())
-    # print(colu)
     pass
