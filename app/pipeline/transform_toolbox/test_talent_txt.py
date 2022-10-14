@@ -1,9 +1,7 @@
 import unittest
 from pathlib import Path
 import pandas as pd
-import datetime
-from date_format_test import date_format_test
-from talent_txt import TalentTXT
+from .talent_txt import TalentTXT
 
 
 class TestTalentTXT(unittest.TestCase):
@@ -12,7 +10,6 @@ class TestTalentTXT(unittest.TestCase):
         self.pickle_jar_path = Path(__file__).resolve().parent.parent / "pickle_jar"
         self.raw_df = pd.read_pickle(self.pickle_jar_path / "talent_txt_v2.pkl")
         self.filenames = pd.read_pickle(self.pickle_jar_path / "talent_txt_filenames.pkl")
-
 
     def test_remove_word_column(self):
         df = pd.DataFrame({'words': ['Sparta Day Hi', 'Sparta Day Hello']})

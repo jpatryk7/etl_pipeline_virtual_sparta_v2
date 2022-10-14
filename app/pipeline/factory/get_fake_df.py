@@ -279,7 +279,7 @@ class GetFakeDf:  # pragma: no cover
         return self._get_test_score_df()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     pd.set_option('display.max_columns', None)
     pd.set_option('display.expand_frame_repr', False)
 

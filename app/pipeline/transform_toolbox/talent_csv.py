@@ -13,7 +13,7 @@ class TalentCSV:
     """
 
     @staticmethod
-    def __camel_case_reader(method: str, cc_list: Optional[list[str]] = None) -> Optional[list[str]]:
+    def __camel_case_reader(method: str, cc_list: Optional[list[str]] = None) -> Optional[list[str]]:  # pragma: no cover
         """
         Function that interfaces with a list of recorded so-far prefixes of camel case words. Possible modes of
         operation:
@@ -186,7 +186,7 @@ class TalentCSV:
         return student_information_df, invitation_df
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     pickle_jar_path = Path(__file__).resolve().parent.parent / "pickle_jar"
     df = pd.read_pickle(pickle_jar_path / "talent_csv_v2.pkl")
     talent_csv = TalentCSV()

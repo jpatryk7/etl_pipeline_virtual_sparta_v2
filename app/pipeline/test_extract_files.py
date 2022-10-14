@@ -98,22 +98,6 @@ class TestExtractFiles(unittest.TestCase):
                     actual = '/'.join(filenames.values.tolist()[0])
                     self.assertEqual(expected, actual)
 
-    def test_get_files_as_df_no_recorder_files(self) -> None:
-        """
-        Check if the function returns all_items_in_s3 when provided empty recorded_files
-        """
-        # create subset
-        recorded_files = []
-        expected = 15
-        actual = 0
-        for prefix in ["Talent", "Academy"]:
-            for ext in ['.json', '.csv', '.txt']:
-                # all files of given type
-                ext_files = [fname for fname in self.all_items_in_s3 if ext in fname]
-                actual += len(self.extract.get_files_as_df(ext_files[0:5], prefix, ext)[0])
-
-        self.assertEqual(expected, actual)
-
     def test_get_files_as_df_all_files_recorded(self) -> None:
         """
         Check if the function returns None when provided recorded_files same as all_items_in_s3
@@ -130,3 +114,6 @@ class TestExtractFiles(unittest.TestCase):
         actual = df.columns.tolist()
         self.assertIn("filename", actual)
 
+
+if __name__ == "__main__":
+    unittest.main()

@@ -2,7 +2,6 @@ from django.views.generic import detail
 from .pages import IndexPage
 import pandas as pd
 from .factory import factory
-from .transform_toolbox_old.split_academy_csv_df import SplitAcademyCSVFrame
 from .models import *
 from .load_data import LoadData
 from .extract_files import ExtractFiles

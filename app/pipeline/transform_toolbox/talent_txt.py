@@ -4,7 +4,7 @@ Note:
         1. student name, date (the one in the filename), psychometrics, presentation
 """
 import pandas as pd
-from datetime import datetime
+
 
 class TalentTXT:
     def __init__(self) -> None:
