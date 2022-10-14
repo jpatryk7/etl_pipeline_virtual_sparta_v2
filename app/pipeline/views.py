@@ -1,21 +1,12 @@
+from pathlib import Path
+
 from django.views.generic import detail
 from .pages import IndexPage
-import pandas as pd
-from .factory import factory
-from .transform_toolbox_old.split_academy_csv_df import SplitAcademyCSVFrame
-from .models import *
-from .load_data import LoadData
-from .extract_files import ExtractFiles
+from .models import StudentInformation
 
 
 def index(request):
-    factory.standard_factory()
-    # ex = ExtractFiles("data32-final-project-files")
-    # s = SplitAcademyCSVFrame(ex.get_files_as_df([], 'Academy', '.csv')[0])
-    # df = s.get_academy_performance_df()
-    # ld = LoadData()
-    # for _, row in df.iterrows():
-    #     ld.academy_performance(row)
+    # factory.standard_factory()  # fake data - test front end
     return IndexPage()
 
 

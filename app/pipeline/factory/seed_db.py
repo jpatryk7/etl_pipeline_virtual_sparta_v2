@@ -1,7 +1,7 @@
 from typing import Type, Union
 from faker import Faker
 import random
-from app.pipeline.models import (
+from ..models import (
     StudentInformation,
     TraineePerformance,
     AcademyPerformance,
@@ -82,21 +82,18 @@ class SeedDB:  # pragma: no cover
 
     def student_information(self, *, null: bool = False) -> None:
         if null:
-            university, degree, test_score_id, invitation_id, course_id, academy_performance_id, trainee_performance_id = (None, None, None, None, None, None, None)
+            university, degree, test_score_id, invitation_id, academy_performance_id, trainee_performance_id = (None, None, None, None, None, None)
         else:
             university = self.faker.text(max_nb_chars=10)
             degree = self.faker.text(max_nb_chars=10)
 
-            course_id_all = Course.objects.all().values_list('id', flat=True)
-
             test_score_id = TestScore.objects.get(pk=self.id_manager.get_random_id('test_score_id'))
             invitation_id = Invitation.objects.get(pk=self.id_manager.get_random_id('invitation_id'))
-            course_id = Course.objects.get(pk=random.choice(course_id_all))
             academy_performance_id = AcademyPerformance.objects.get(pk=self.id_manager.get_random_id('academy_performance_id'))
             trainee_performance_id = TraineePerformance.objects.get(pk=self.id_manager.get_random_id('trainee_performance_id'))
 
         student_information_obj = StudentInformation(
-            name=self.faker.text(max_nb_chars=20),
+            student_name=self.faker.text(max_nb_chars=20),
             gender=self.faker.text(max_nb_chars=5),
             dob=self.faker.date(),
             email=self.faker.text(max_nb_chars=20),
@@ -107,7 +104,6 @@ class SeedDB:  # pragma: no cover
             degree=degree,
             test_score_id=test_score_id,
             invitation_id=invitation_id,
-            course_id=course_id,
             academy_performance_id=academy_performance_id,
             trainee_performance_id=trainee_performance_id
         )
@@ -121,11 +117,11 @@ class SeedDB:  # pragma: no cover
             course_interest = self.faker.text(max_nb_chars=10)
 
         trainee_performance_obj = TraineePerformance(
-            date=self.faker.date(),
             self_development=self.faker.boolean(),
             geo_flex=self.faker.boolean(),
             financial_support=self.faker.boolean(),
-            course_interest=course_interest
+            course_interest=course_interest,
+            result=random.choice(["Fail", "Pass"])
         )
 
         trainee_performance_obj.save()
@@ -141,17 +137,20 @@ class SeedDB:  # pragma: no cover
 
     def academy_performance(self, *, null: bool = False) -> None:
         if null:
-            academy_performance_obj = AcademyPerformance(week=random.randint(1, 8))
+            course_id = None
         else:
-            academy_performance_obj = AcademyPerformance(
-                week=random.randint(1, 8),
-                analytic=random.randint(1, 10),
-                independent=random.randint(1, 10),
-                determined=random.randint(1, 10),
-                professional=random.randint(1, 10),
-                studious=random.randint(1, 10),
-                imaginative=random.randint(1, 10)
-            )
+            course_id = Course.objects.get(pk=self.id_manager.get_random_id('course_id'))
+
+        academy_performance_obj = AcademyPerformance(
+            course_id=course_id,
+            week=random.randint(1, 8),
+            analytic=random.randint(1, 10),
+            independent=random.randint(1, 10),
+            determined=random.randint(1, 10),
+            professional=random.randint(1, 10),
+            studious=random.randint(1, 10),
+            imaginative=random.randint(1, 10)
+        )
 
         academy_performance_obj.save()
         self.id_manager.add_id('academy_performance_id', academy_performance_obj.pk)
@@ -164,7 +163,6 @@ class SeedDB:  # pragma: no cover
             trainer_id = Trainer.objects.get(pk=random.choice(trainer_id_all))
 
         course_obj = Course(
-            week=random.randint(1, 8),
             course_name=self.faker.text(max_nb_chars=10),
             trainer_id=trainer_id
         )
@@ -173,7 +171,7 @@ class SeedDB:  # pragma: no cover
 
     def trainer(self) -> None:
         trainer_obj = Trainer(
-            name=self.faker.text(max_nb_chars=20)
+            trainer_name=self.faker.text(max_nb_chars=20)
         )
 
         trainer_obj.save()
@@ -204,7 +202,7 @@ class SeedDB:  # pragma: no cover
             date = self.faker.date()
 
         invitation_obj = Invitation(
-            date=date,
+            invited_date=date,
             invited_by=self.faker.text(max_nb_chars=20)
         )
 
@@ -213,7 +211,7 @@ class SeedDB:  # pragma: no cover
 
     def tech_score(self) -> None:
         tech_score_obj = TechScore(
-            tech_score_name=self.faker.text(max_nb_chars=10),
+            tech_self_name=self.faker.text(max_nb_chars=10),
             value=random.randint(1, 10)
         )
 

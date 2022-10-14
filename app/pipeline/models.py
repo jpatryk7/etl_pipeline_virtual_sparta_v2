@@ -21,7 +21,7 @@ class TestScore(models.Model):
 
 
 class Invitation(models.Model):
-    date = models.DateField(null=True, blank=True)
+    invited_date = models.DateField(null=True, blank=True)
     invited_by = models.CharField(max_length=200)
 
     def get_absolute_url(self):
@@ -40,13 +40,12 @@ class Invitation(models.Model):
 
 
 class Trainer(models.Model):
-    name = models.CharField(max_length=200)
+    trainer_name = models.CharField(max_length=200)
 
 
 class Course(models.Model):
     course_name = models.CharField(max_length=200)
     trainer_id = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True)
-    date = models.DateField()
 
     def get_absolute_url(self):
         return self.id
@@ -92,7 +91,7 @@ class AcademyPerformance(models.Model):
 
 
 class TechScore(models.Model):
-    tech_score_name = models.CharField(max_length=50)
+    tech_self_score = models.CharField(max_length=50)
     value = models.IntegerField()
 
 
@@ -105,14 +104,11 @@ class Weakness(models.Model):
 
 
 class TraineePerformance(models.Model):
-    date = models.DateField()
     self_development = models.BooleanField()
     geo_flex = models.BooleanField()
     financial_support = models.BooleanField()
     course_interest = models.CharField(max_length=500)
-    tech_scores = models.ManyToManyField(TechScore, blank=True)
-    strengths = models.ManyToManyField(Strength, blank=True)
-    weaknesses = models.ManyToManyField(Weakness, blank=True)
+    # result = models.CharField(max_length=100)
 
     def get_absolute_url(self):
         return self.id
@@ -130,7 +126,7 @@ class TraineePerformance(models.Model):
 
 
 class StudentInformation(models.Model):
-    name = models.CharField(max_length=200)
+    student_name = models.CharField(max_length=200)
     gender = models.CharField(max_length=50)
     dob = models.DateField()
     email = models.CharField(max_length=500)
@@ -141,9 +137,11 @@ class StudentInformation(models.Model):
     degree = models.CharField(max_length=500, null=True, blank=True)
     test_score_id = models.ForeignKey(TestScore, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
     invitation_id = models.ForeignKey(Invitation, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
-    course_id = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
     academy_performance_id = models.ForeignKey(AcademyPerformance, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
     trainee_performance_id = models.ForeignKey(TraineePerformance, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
+    tech_scores = models.ManyToManyField(TechScore, blank=True, null=True)  # many-to-many
+    strengths = models.ManyToManyField(Strength, blank=True, null=True)  # many-to-many
+    weaknesses = models.ManyToManyField(Weakness, blank=True, null=True)  # many-to-many
 
     def get_absolute_url(self):
         return self.id
