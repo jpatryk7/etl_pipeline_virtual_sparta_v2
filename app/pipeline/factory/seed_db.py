@@ -171,7 +171,7 @@ class SeedDB:  # pragma: no cover
 
     def trainer(self) -> None:
         trainer_obj = Trainer(
-            name=self.faker.text(max_nb_chars=20)
+            trainer_name=self.faker.text(max_nb_chars=20)
         )
 
         trainer_obj.save()

@@ -40,7 +40,7 @@ class Invitation(models.Model):
 
 
 class Trainer(models.Model):
-    name = models.CharField(max_length=200)
+    trainer_name = models.CharField(max_length=200)
 
 
 class Course(models.Model):
@@ -108,10 +108,7 @@ class TraineePerformance(models.Model):
     geo_flex = models.BooleanField()
     financial_support = models.BooleanField()
     course_interest = models.CharField(max_length=500)
-    result = models.CharField(max_length=100)
-    tech_scores = models.ManyToManyField(TechScore, blank=True)
-    strengths = models.ManyToManyField(Strength, blank=True)
-    weaknesses = models.ManyToManyField(Weakness, blank=True)
+    # result = models.CharField(max_length=100)
 
     def get_absolute_url(self):
         return self.id
@@ -142,6 +139,9 @@ class StudentInformation(models.Model):
     invitation_id = models.ForeignKey(Invitation, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
     academy_performance_id = models.ForeignKey(AcademyPerformance, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
     trainee_performance_id = models.ForeignKey(TraineePerformance, on_delete=models.SET_NULL, null=True, blank=True)  # 1-to-1
+    tech_scores = models.ManyToManyField(TechScore, blank=True, null=True)  # many-to-many
+    strengths = models.ManyToManyField(Strength, blank=True, null=True)  # many-to-many
+    weaknesses = models.ManyToManyField(Weakness, blank=True, null=True)  # many-to-many
 
     def get_absolute_url(self):
         return self.id
